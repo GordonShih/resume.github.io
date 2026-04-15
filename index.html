@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>施維竣 Gordon Shih — Full-Stack Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Noto+Serif+TC:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0e0e0f;
+      --bg2: #161618;
+      --bg3: #1e1e21;
+      --line: #2a2a2e;
+      --accent: #d4a853;
+      --accent2: #e8c880;
+      --text: #e8e6e0;
+      --muted: #7a7870;
+      --soft: #b8b5ac;
+      --white: #f5f3ef;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Serif TC', serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      position: fixed; pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 168, 83, 0.4);
+      position: fixed; pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.15s ease, width 0.25s ease, height 0.25s ease;
+    }
+    a:hover ~ .cursor, button:hover ~ .cursor { width: 6px; height: 6px; }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; opacity: 0.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem 4rem;
+      background: linear-gradient(to bottom, rgba(14,14,15,0.95) 0%, transparent 100%);
+      backdrop-filter: blur(8px);
+    }
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-left {
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 8rem 3rem 6rem 4rem;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+    .hero-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(3.5rem, 6vw, 6rem);
+      line-height: 1;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.35s forwards;
+    }
+    .hero-name-en {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3.5rem);
+      color: var(--accent);
+      font-style: italic;
+      line-height: 1;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-desc {
+      font-size: 0.95rem;
+      line-height: 1.9;
+      color: var(--soft);
+      max-width: 420px;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.65s forwards;
+    }
+    .hero-ctas {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+    .btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.85rem 2rem;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: transparent;
+      transition: background 0.25s, color 0.25s;
+      display: inline-block;
+    }
+    .btn:hover { background: var(--accent); color: var(--bg); }
+    .btn-ghost {
+      border-color: var(--line);
+      color: var(--muted);
+    }
+    .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+    .hero-right {
+      display: flex; flex-direction: column; justify-content: center; align-items: flex-end;
+      padding: 8rem 4rem 6rem 2rem;
+      position: relative; z-index: 1;
+      opacity: 0;
+      animation: fadeIn 1.2s 0.6s forwards;
+    }
+    .hero-stats {
+      display: grid; grid-template-rows: repeat(3, 1fr); gap: 2.5rem;
+      border-left: 1px solid var(--line);
+      padding-left: 3rem;
+    }
+    .stat-item { }
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.8rem;
+      color: var(--accent);
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+
+    /* Decorative diagonal line */
+    .hero-divider {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, var(--line) 20%, var(--line) 80%, transparent);
+      z-index: 0;
+    }
+    .hero-grid-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(212,168,83,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,168,83,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ── SECTION COMMON ── */
+    section { position: relative; z-index: 1; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 4rem; }
+
+    .section-header {
+      display: flex; align-items: baseline; gap: 1.5rem;
+      margin-bottom: 4rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .section-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+    }
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--white);
+      letter-spacing: -0.01em;
+    }
+
+    /* ── ABOUT ── */
+    #about { padding: 7rem 0; background: var(--bg2); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .about-text { }
+    .about-text p {
+      font-size: 0.95rem;
+      line-height: 2;
+      color: var(--soft);
+      margin-bottom: 1.4rem;
+    }
+    .about-text p:first-child {
+      font-size: 1.1rem;
+      color: var(--text);
+      line-height: 1.9;
+    }
+    .about-meta { }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.85rem;
+    }
+    .meta-key {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .meta-val { color: var(--soft); text-align: right; }
+    .meta-val a { color: var(--accent); text-decoration: none; }
+    .meta-val a:hover { text-decoration: underline; }
+
+    /* ── EXPERIENCE ── */
+    #experience { padding: 7rem 0; }
+    .exp-list { display: flex; flex-direction: column; gap: 0; }
+    .exp-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0 3rem;
+      padding: 3rem 0;
+      border-bottom: 1px solid var(--line);
+      transition: background 0.3s;
+      position: relative;
+    }
+    .exp-item::before {
+      content: '';
+      position: absolute;
+      left: -4rem; top: 0; bottom: 0; right: -4rem;
+      background: transparent;
+      transition: background 0.3s;
+      z-index: -1;
+    }
+    .exp-item:hover::before { background: rgba(212,168,83,0.02); }
+    .exp-meta { padding-top: 0.25rem; }
+    .exp-period {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+    .exp-duration {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 1rem;
+    }
+    .exp-industry {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .exp-content { }
+    .exp-role {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+    .exp-company {
+      font-size: 0.85rem;
+      color: var(--accent2);
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+    }
+    .exp-desc {
+      font-size: 0.88rem;
+      line-height: 1.9;
+      color: var(--soft);
+    }
+    .exp-tags {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-top: 1.2rem;
+    }
+    .tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* ── SKILLS ── */
+    #skills { padding: 7rem 0; background: var(--bg2); }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+    .skill-block {
+      background: var(--bg2);
+      padding: 2.5rem;
+      transition: background 0.3s;
+    }
+    .skill-block:hover { background: var(--bg3); }
+    .skill-block-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .skill-items { display: flex; flex-direction: column; gap: 0.5rem; }
+    .skill-item {
+      display: flex; align-items: center; gap: 0.7rem;
+      font-size: 0.82rem;
+      color: var(--soft);
+    }
+    .skill-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── EDUCATION ── */
+    #education { padding: 7rem 0; }
+    .edu-list { display: flex; flex-direction: column; gap: 0; }
+    .edu-item {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 0 3rem;
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .edu-year {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      padding-top: 0.2rem;
+    }
+    .edu-school {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem;
+      color: var(--white);
+      margin-bottom: 0.3rem;
+    }
+    .edu-degree {
+      font-size: 0.85rem;
+      color: var(--soft);
+    }
+
+    /* ── CONTACT ── */
+    #contact {
+      padding: 7rem 0;
+      background: var(--bg2);
+    }
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .contact-headline {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      color: var(--white);
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+    }
+    .contact-headline em {
+      color: var(--accent);
+      font-style: italic;
+    }
+    .contact-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    .contact-links { display: flex; flex-direction: column; gap: 0; }
+    .contact-link {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 0;
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+      color: var(--soft);
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .contact-link:hover { color: var(--accent); }
+    .contact-link-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .contact-link-arrow { color: var(--muted); font-size: 0.9rem; transition: transform 0.2s, color 0.2s; }
+    .contact-link:hover .contact-link-arrow { transform: translateX(4px); color: var(--accent); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 2rem 4rem;
+      border-top: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 1.2rem 2rem; }
+      .nav-links { display: none; }
+      #hero { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .hero-left { padding: 7rem 2rem 4rem; }
+      .container { padding: 0 2rem; }
+      .about-grid,
+      .contact-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .exp-item,
+      .edu-item { grid-template-columns: 1fr; gap: 0.5rem; }
+      .exp-meta,
+      .edu-year { padding-top: 0; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">施維竣</a>
+  <ul class="nav-links">
+    <li><a href="#about">關於</a></li>
+    <li><a href="#experience">經歷</a></li>
+    <li><a href="#skills">技能</a></li>
+    <li><a href="#education">學歷</a></li>
+    <li><a href="#contact">聯絡</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-divider"></div>
+
+  <div class="hero-left">
+    <p class="hero-eyebrow">Full-Stack Engineer · 台中，台灣</p>
+    <h1 class="hero-name">施維竣</h1>
+    <h2 class="hero-name-en">Gordon Shih</h2>
+    <p class="hero-desc">
+      從嵌入式韌體到雲端 API，從自動化設備到現代 Web 應用，
+      橫跨 20 年的技術積累，以工程師的精準與主管的視野，
+      打造可靠、高效的系統解決方案。
+    </p>
+    <div class="hero-ctas">
+      <a href="#experience" class="btn">查看經歷</a>
+      <a href="https://github.com/GordonShih" target="_blank" class="btn btn-ghost">GitHub →</a>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-num">20+</div>
+        <div class="stat-label">Years of Experience</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Companies · Industries</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">60→</div>
+        <div class="stat-label">Team Scaled to 60 ppl</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">01 —</span>
+      <h2 class="section-title">關於我</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <p>
+          就業至今，一直保持積極樂觀的態度來面對工作上的挑戰。
+          若遇到全新的工作內容，就以審慎仔細的方式找尋快速上手的技巧；
+          維護既有軟體時，則嘗試以不同的思維實現，比較新舊系統的優缺點，
+          融合出一個有效率、穩定的系統。
+        </p>
+        <p>
+          從德商英飛凌的系統驗證、宏暘科技的數位電視驅動、
+          大立光電的鏡頭組裝優化，到新鉅科技帶領部門從 5 人擴展至近 60 人，
+          再到現在的全端 Web 開發——每段歷程都是技術深度與廣度的積累。
+        </p>
+        <p>
+          深刻了解一個專案需要天時（time to market）、
+          地利（location）、人和（team work）的完美結合，方能成功。
+        </p>
+      </div>
+      <div class="about-meta reveal">
+        <div class="meta-row">
+          <span class="meta-key">姓名</span>
+          <span class="meta-val">施維竣 Gordon Shih</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">現況</span>
+          <span class="meta-val">待業中 · 可隨時聯絡</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">希望職稱</span>
+          <span class="meta-val">專案開發主管</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">地點</span>
+          <span class="meta-val">台中市南屯 / 西屯區</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Email</span>
+          <span class="meta-val"><a href="mailto:tov_tw@yahoo.com.tw">tov_tw@yahoo.com.tw</a></span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">GitHub</span>
+          <span class="meta-val"><a href="https://github.com/GordonShih" target="_blank">github.com/GordonShih</a></span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">證照</span>
+          <span class="meta-val">AI 應用規劃師（初級）</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">02 —</span>
+      <h2 class="section-title">工作經歷</h2>
+    </div>
+    <div class="exp-list">
+
+      <!-- Job 1 -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">2024/01 — 2026/04</div>
+          <div class="exp-duration">2 年 4 個月</div>
+          <div class="exp-industry">投資理財相關業<br>1–30 人</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">全端工程師</div>
+          <div class="exp-company">公司名暫不公開 · 台中市西屯區</div>
+          <p class="exp-desc">
+            負責客戶端與內部人員前端網站的開發與維護，完成大規模改版與程式碼重構，
+            提升效能與可維護性。於入職第二個月啟動內部管理後台，2 個月內完成 90% 核心功能上線。
+            使用 Sanic 框架建構 RESTful API，搭配 PostgreSQL MVCC 特性提升高頻存取效能，
+            並導入 SQLAlchemy 優化資料庫操作。整合 Line / Telegram 推播即時關鍵資訊給內部人員。
+          </p>
+          <div class="exp-tags">
+            <span class="tag">React</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">Node.js</span>
+            <span class="tag">Python Sanic</span>
+            <span class="tag">PostgreSQL</span>
+            <span class="tag">SQLAlchemy</span>
+            <span class="tag">Line API</span>
+            <span class="tag">Telegram Bot</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 2 -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">2022/06 — 2023/12</div>
+          <div class="exp-duration">1 年 7 個月</div>
+          <div class="exp-industry">自動控制相關業<br>1–30 人</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">軟體專案主管（經理）</div>
+          <div class="exp-company">芫鉅科技有限公司 · 台中市西區</div>
+          <p class="exp-desc">
+            帶領軟體部門完成多個關鍵自動化設備專案。
+            導入公司首個多關節機械手臂專案，整合 Nachi 手臂與 Keyence XG 影像系統，
+            完成車用面板搬移 OVEN 設備。另以 Denso 手臂封裝自定函式庫，縮減 50% 手臂移動延遲，
+            成功完成業界首台能克服可繞性材質組裝挑戰的拋棄式內視鏡組裝設備，
+            促成客戶整線自動化生產設備訂單。
+          </p>
+          <div class="exp-tags">
+            <span class="tag">Robot SDK</span>
+            <span class="tag">Nachi / Denso Arm</span>
+            <span class="tag">Keyence XG</span>
+            <span class="tag">PLC</span>
+            <span class="tag">CC-Link</span>
+            <span class="tag">TCP/IP</span>
+            <span class="tag">PC-Based Vision</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 3 -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">2013/04 — 2022/05</div>
+          <div class="exp-duration">9 年 2 個月</div>
+          <div class="exp-industry">光電產業<br>500 人以上</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">開發部門經理</div>
+          <div class="exp-company">新鉅科技股份有限公司 · 台中市南屯區</div>
+          <p class="exp-desc">
+            9 年間帶領自動化發展中心從 5 人成長至近 60 人，本人職稱從專案課長晉升至經理。
+            主導指紋辨識鏡頭 MTF 檢測設備量產，成為公司核心競爭力，助公司由虧轉盈。
+            完成鏡頭組裝線十餘種設備開發，單一設備最大量產達 80 台。
+            兼職規劃與執行廠內第一代工業 4.0 智慧製造。
+          </p>
+          <div class="exp-tags">
+            <span class="tag">Team Leadership</span>
+            <span class="tag">Machine Vision</span>
+            <span class="tag">Industry 4.0</span>
+            <span class="tag">MTF Inspection</span>
+            <span class="tag">Production Automation</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 4 -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">2010/07 — 2013/03</div>
+          <div class="exp-duration">2 年 9 個月</div>
+          <div class="exp-industry">光電產業<br>500 人以上</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">資深工程師</div>
+          <div class="exp-company">大立光電 · 台中市西屯區</div>
+          <p class="exp-desc">
+            參與鏡頭自動組裝製程軟體開發與優化，導入模組化設計整合各型號版本，
+            實現組裝與光學辨識單元解耦，利於單元測試與問題釐清。
+            完成鎖附機開發，達成量產品質標準，為廠內唯一達到量產規模的鎖附機型，
+            月產能超過 65K。
+          </p>
+          <div class="exp-tags">
+            <span class="tag">Lens Assembly</span>
+            <span class="tag">Modular Design</span>
+            <span class="tag">Optical Inspection</span>
+            <span class="tag">C#</span>
+            <span class="tag">Mass Production</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 5 -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">2007/09 — 2010/07</div>
+          <div class="exp-duration">2 年 11 個月</div>
+          <div class="exp-industry">IC 設計相關業<br>30–100 人</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">資深軟體工程師</div>
+          <div class="exp-company">宏暘科技（旺宏集團） · 新竹市</div>
+          <p class="exp-desc">
+            負責數位電視解調器相關 USB FW、USB BDA Driver 及 Evaluation UI 工具開發，
+            涵蓋 Windows XP/Vista/7、WinCE 6 及 Embedded Linux 各平台移植，
+            並將產品移植至聯發科手機平台（MTK6225）Nucleus OS 及 GPS 車載機應用系統。
+          </p>
+          <div class="exp-tags">
+            <span class="tag">USB Driver</span>
+            <span class="tag">WinCE</span>
+            <span class="tag">Embedded Linux</span>
+            <span class="tag">BDA Driver</span>
+            <span class="tag">MTK6225</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Job 6 -->
+      <div class="exp-item reveal">
+        <div class="exp-meta">
+          <div class="exp-period">2004/08 — 2007/08</div>
+          <div class="exp-duration">3 年 1 個月</div>
+          <div class="exp-industry">IC 設計相關業<br>100–500 人</div>
+        </div>
+        <div class="exp-content">
+          <div class="exp-role">軟體工程師</div>
+          <div class="exp-company">台灣英飛凌科技（Infineon Taiwan） · 台中</div>
+          <p class="exp-desc">
+            開發 VoIP 語音品質量測、Router 驗證與 WiFi RF 性能估測系統，
+            支援 RS232、Ethernet、GPIB 多種通訊介面，
+            軟體兼容 Windows / Linux 跨平台，產出 Excel / PDF 專業報表。
+            曾赴印度 Bangalore 與當地工程師協作開發 VoIP 軟體，
+            系統亦部署於以色列分公司。
+          </p>
+          <div class="exp-tags">
+            <span class="tag">C / TCL</span>
+            <span class="tag">VoIP</span>
+            <span class="tag">RF Measurement</span>
+            <span class="tag">RS232 / GPIB</span>
+            <span class="tag">Cross-Platform</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">03 —</span>
+      <h2 class="section-title">技術能力</h2>
+    </div>
+    <div class="skills-grid reveal">
+      <div class="skill-block">
+        <div class="skill-block-title">Frontend</div>
+        <div class="skill-items">
+          <div class="skill-item"><span class="skill-dot"></span>React / TypeScript</div>
+          <div class="skill-item"><span class="skill-dot"></span>JavaScript / Node.js</div>
+          <div class="skill-item"><span class="skill-dot"></span>HTML / CSS</div>
+          <div class="skill-item"><span class="skill-dot"></span>QT / MFC</div>
+        </div>
+      </div>
+      <div class="skill-block">
+        <div class="skill-block-title">Backend &amp; Database</div>
+        <div class="skill-items">
+          <div class="skill-item"><span class="skill-dot"></span>Python / Sanic</div>
+          <div class="skill-item"><span class="skill-dot"></span>RESTful API</div>
+          <div class="skill-item"><span class="skill-dot"></span>PostgreSQL / SQLAlchemy</div>
+          <div class="skill-item"><span class="skill-dot"></span>C / C++ / C#</div>
+        </div>
+      </div>
+      <div class="skill-block">
+        <div class="skill-block-title">Embedded &amp; System</div>
+        <div class="skill-items">
+          <div class="skill-item"><span class="skill-dot"></span>USB Driver / WinCE / Linux</div>
+          <div class="skill-item"><span class="skill-dot"></span>TCP/IP / ModbusTCP/RTU</div>
+          <div class="skill-item"><span class="skill-dot"></span>Robot SDK (Nachi / Denso)</div>
+          <div class="skill-item"><span class="skill-dot"></span>PLC / CC-Link</div>
+        </div>
+      </div>
+      <div class="skill-block">
+        <div class="skill-block-title">Integration &amp; Tools</div>
+        <div class="skill-items">
+          <div class="skill-item"><span class="skill-dot"></span>Line API / Telegram Bot</div>
+          <div class="skill-item"><span class="skill-dot"></span>Keyence Vision System</div>
+          <div class="skill-item"><span class="skill-dot"></span>Git / GitHub</div>
+          <div class="skill-item"><span class="skill-dot"></span>Excel / PowerPoint</div>
+        </div>
+      </div>
+      <div class="skill-block">
+        <div class="skill-block-title">Management</div>
+        <div class="skill-items">
+          <div class="skill-item"><span class="skill-dot"></span>軟體專案管理</div>
+          <div class="skill-item"><span class="skill-dot"></span>跨部門協作</div>
+          <div class="skill-item"><span class="skill-dot"></span>Industry 4.0 規劃</div>
+          <div class="skill-item"><span class="skill-dot"></span>成本管控與進度追蹤</div>
+        </div>
+      </div>
+      <div class="skill-block">
+        <div class="skill-block-title">語言能力</div>
+        <div class="skill-items">
+          <div class="skill-item"><span class="skill-dot"></span>中文（母語）</div>
+          <div class="skill-item"><span class="skill-dot"></span>台語（中等）</div>
+          <div class="skill-item"><span class="skill-dot"></span>英文（讀/精通；聽說寫/中等）</div>
+          <div class="skill-item"><span class="skill-dot"></span>AI 應用規劃師（初級）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section id="education">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">04 —</span>
+      <h2 class="section-title">學歷</h2>
+    </div>
+    <div class="edu-list">
+      <div class="edu-item reveal">
+        <div class="edu-year">2002 — 2004</div>
+        <div>
+          <div class="edu-school">逢甲大學</div>
+          <div class="edu-degree">自動控制學系 · 碩士</div>
+        </div>
+      </div>
+      <div class="edu-item reveal">
+        <div class="edu-year">1999 — 2001</div>
+        <div>
+          <div class="edu-school">虎尾科技大學</div>
+          <div class="edu-degree">電機工程學系 · 二技</div>
+        </div>
+      </div>
+      <div class="edu-item reveal">
+        <div class="edu-year">1997 — 1999</div>
+        <div>
+          <div class="edu-school">國立虎尾技術學院</div>
+          <div class="edu-degree">電機工程科 · 二專</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-num">05 —</span>
+      <h2 class="section-title">聯絡方式</h2>
+    </div>
+    <div class="contact-inner">
+      <div class="reveal">
+        <h3 class="contact-headline">讓我們<br><em>一起合作</em></h3>
+        <p class="contact-sub">
+          目前待業中，隨時可聯繫。<br>
+          希望加入台中南屯 / 西屯區的優質團隊，<br>
+          擔任專案開發主管或全端工程師相關職務。
+        </p>
+      </div>
+      <div class="contact-links reveal">
+        <a href="mailto:tov_tw@yahoo.com.tw" class="contact-link">
+          <div>
+            <div class="contact-link-label">Email</div>
+            <div>tov_tw@yahoo.com.tw</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+        <a href="tel:0953577868" class="contact-link">
+          <div>
+            <div class="contact-link-label">手機</div>
+            <div>0953-577-868</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+        <a href="https://github.com/GordonShih" target="_blank" class="contact-link">
+          <div>
+            <div class="contact-link-label">GitHub</div>
+            <div>github.com/GordonShih</div>
+          </div>
+          <span class="contact-link-arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-copy">© 2026 施維竣 Gordon Shih. All rights reserved.</span>
+  <span class="footer-copy">Built with care · resume.github.io</span>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.width = '18px'; cursor.style.height = '18px'; ring.style.width = '50px'; ring.style.height = '50px'; });
+    el.addEventListener('mouseleave', () => { cursor.style.width = '10px'; cursor.style.height = '10px'; ring.style.width = '36px'; ring.style.height = '36px'; });
+  });
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        e.target.style.transitionDelay = (i * 0.05) + 's';
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  revealEls.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
